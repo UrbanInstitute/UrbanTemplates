@@ -8,7 +8,8 @@ full = "urban.map"
 
 log = (err, stdout, stderr) ->
   throw err if err
-  console.log stdout + stderr
+  if stdout or stderr
+    console.log stdout + stderr
 
 # Compile all jsfiles into one output file
 task 'sbuild', 'Sublime CoffeeBuilder of UrbanMap', ->
@@ -17,5 +18,5 @@ task 'sbuild', 'Sublime CoffeeBuilder of UrbanMap', ->
   exec 'coffee --compile --output lib/ src/', log
   # Smash and minify
   exec "smash #{("./#{m}" for m in module).join(" ")} > ./lib/#{full}.js", log
-  exec "uglifyjs -m --lint -o ./lib/#{full}.min.js ./lib/#{full}.js", log
+  exec "uglifyjs -m -o ./lib/#{full}.min.js ./lib/#{full}.js", log
 

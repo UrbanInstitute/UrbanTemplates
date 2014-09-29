@@ -19,7 +19,8 @@ class Map
 
     self = @
     options ?= {}
-    # Added to library from external js file
+
+    # Reference to county geojson (added to file on build)
     self.countyJson = countyJson
     @container = options?.container ? "#map"
 
@@ -28,42 +29,53 @@ class Map
       mapError("\"#{opt}\" not provided to Map.") if not o
       self[opt] = o
 
+    @loadCSV @csv, -> @render()
+
+
+  loadCSV : (filename, callback) ->
     d3.csv self.csv, (e, data) ->
       self.data = data
-      self.render()
+      callback()
+    return self
 
   render : ->
 
     # Self Reference for inner function contexts
     self = this
 
-    containerElement = d3.select(this.container).style('overflow', 'hidden')
-
     # These values are not the pixel width and height,
     # But simply a starting point for the w/h ratio
+    # Which tightly bounds the map
     width = 1011
     height = 588
 
-    projection = d3.geo.albersUsa().scale(width).translate([width/2, height/2.5])
+    us = @countyJson
+
+    projection = d3.geo.albersUsa()
+                    .scale(width)
+                    .translate([width/2, height/2])
 
     path = d3.geo.path().projection(projection)
 
-    svg = containerElement.html('')
-                .append('svg')
-                .attr({
-                  "class" : "Urban-Map-County",
-                  "preserveAspectRatio" : "xMinYMin meet",
-                  "viewBox" : '0 0 ' + width + ' ' + height
-                }).append('g')
+    containerElement = d3.select(@container)
 
-    us = self.countyJson
-    counties = svg.append('g')
-      .attr('class', 'counties')
-      .selectAll('path')
-        .data(topojson.feature(us, us.objects.counties).features)
-      .enter()
-        .append('path')
-        .attr('d', path)
+    svg = containerElement.html ''
+            .append 'svg'
+            .attr
+              class : "urban-map"
+              preserveAspectRatio : "xMinYMin slice"
+              viewBox :  "0 0 #{width} #{height}"
+            .append 'g'
+
+    counties = svg.append 'g'
+                .attr 'class', 'counties'
+                .selectAll 'path'
+                  .data topojson.feature(us, us.objects.counties).features
+                .enter()
+                  .append 'path'
+                  .attr 'd', path
+
+    return self
 
 
 do ->
