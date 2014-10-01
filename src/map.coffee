@@ -1,7 +1,7 @@
 ###
-  D3 County Map Template
-  Ben Southgate
-  9/29/14
+    D3 County Map Template
+    Ben Southgate
+    9/29/14
 ###
 
 ##
@@ -127,6 +127,13 @@ class Map
                   @countyJson.objects.counties
                 ).features
 
+    # state topology
+    stateTopoData = topojson.mesh(
+                      @countyJson,
+                      @countyJson.objects.states,
+                      (a, b) -> a != b
+                    )
+
     # Tooltip div
     tooltip = d3.select('body').append('div')
       .attr('class', 'urban-map-tooltip')
@@ -174,6 +181,14 @@ class Map
                     .duration(100)
                     .style
                       opacity : 0
+
+    # Add state mesh
+    svg.append("path")
+        .datum(stateTopoData)
+        .attr("class", "urban-map-states")
+        .attr("d", path)
+        .style
+          fill : 'none'
 
     # Method chaining
     return self

@@ -1,3 +1,7 @@
+#
+# Build system for urban templates
+#
+
 {exec} = require 'child_process'
 
 module = [
