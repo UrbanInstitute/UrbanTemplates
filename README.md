@@ -2,7 +2,7 @@
 
 (Hopefully) helpful javascript templates for data visualization.
 
-## urban.map.js
+# urban.map.js
 
 A re-usable interactive US map for county level data features.
 
@@ -11,6 +11,46 @@ A re-usable interactive US map for county level data features.
 ### Usage
 
 simply include `urban.map.min.js` (in the [lib](https://github.com/UrbanInstitute/UrbanTemplates/tree/master/lib) folder above) and create a map as follows (see `example.html` for detailed example usage).
+
+#### CSS
+
+All aspects of the map can be styled using CSS, and the size of the map SVG is responsive to the size of its container.
+
+```css
+
+.urban-map {
+  display: block;
+  width: 80%;
+  min-width: 400px;
+  margin: 0px auto;
+}
+
+.urban-map-tooltip {
+  padding: 10px;
+  background-color: white;
+  color : #333;
+  border-radius : 5px;
+  border : 1px solid #aaa;
+}
+
+.urban-map-counties:hover {
+  stroke :orange;
+  opacity: 0.7;
+  stroke-width:3px;
+  cursor:pointer;
+}
+
+.urban-map-states {
+  stroke : white;
+  stroke-linejoin: round;
+}
+```
+
+
+#### Javascript 
+
+To create a map object, use the `Urban.Map` constructor, with options similar to below.
+
 
 ```javascript
 var map = new Urban.Map({
