@@ -18,7 +18,8 @@ All aspects of the map can be styled using CSS, and the size of the map SVG is r
 
 ```css
 
-.urban-map {
+/* Example map container */
+#map {
   display: block;
   width: 80%;
   min-width: 400px;
