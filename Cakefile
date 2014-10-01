@@ -1,7 +1,7 @@
 {exec} = require 'child_process'
 
 module = [
- "lib/map.js", "lib/counties.geo.js"
+ "lib/map.js"
 ]
 
 full = "urban.map"
@@ -12,7 +12,7 @@ log = (err, stdout, stderr) ->
     console.log stdout + stderr
 
 # Compile all jsfiles into one output file
-task 'sbuild', 'Sublime CoffeeBuilder of UrbanMap', ->
+task 'sbuild', 'Sublime CoffeeBuilder of Urban Module', ->
   # Compile coffee to js
   console.log "Building CoffeScript, compiling to /lib/..."
   exec 'coffee --compile --output lib/ src/', log
