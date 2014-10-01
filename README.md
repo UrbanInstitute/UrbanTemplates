@@ -10,7 +10,7 @@ A re-usable interactive US map for county level data features.
 
 ### Usage
 
-simply include `urban.map.min.js` and create a map as follows (see example.html for detailed example usage).
+simply include `urban.map.min.js` (in the [lib](https://github.com/UrbanInstitute/UrbanTemplates/tree/master/lib) folder above) and create a map as follows (see example.html for detailed example usage).
 
 ```javascript
 var map = new Urban.Map({
