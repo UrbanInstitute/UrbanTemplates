@@ -66,6 +66,7 @@ class Map
     # Self Reference for inner function contexts
     self = @
     cid = self.countyID
+
     d3.csv filename, (e, data) ->
       # Store data as object referenced by county id
       self.data = d = {}
@@ -73,6 +74,8 @@ class Map
         mapError("#{cid} not in csv!") if not (cid of row)
         d[row[cid]] = row
       callback()
+
+    # Method chaining
     return self
 
 
@@ -90,8 +93,8 @@ class Map
     # but simply a starting point for the w/h ratio
     # which tightly bounds the map. The actual visible
     # dimensions are set by the svg viewbox.
-    width = 1011
-    height = 588
+    width = @width = 1011
+    height = @hieght = 588
 
     # Albers projection centered in the contianer div
     projection = d3.geo.albersUsa()
@@ -112,6 +115,11 @@ class Map
               preserveAspectRatio : "xMinYMin slice"
               viewBox :  "0 0 #{width} #{height}"
             .append 'g'
+
+    # Choropleth legend container
+    @legend = svg.append 'g'
+                .attr
+                  class : 'urban-map-legend'
 
     # County topology
     topodata = topojson.feature(
@@ -166,31 +174,68 @@ class Map
                     .duration(100)
                     .style
                       opacity : 0
+
+    # Method chaining
     return self
 
 
   #
   #
-  # Draw the map onto given container
+  # Update the choropleth
   #
   #
   update : (var_obj) ->
     # Self Reference for inner function contexts
     self = @
+
+    # Bins and name for variable to display
     bins = @bins = var_obj.breaks ? @bins ? mapError("No bins provided!")
-    @colors = var_obj.colors ? @colors
-    name = var_obj.name
+    name = var_obj.name ? mapError("No variable name provided!")
+
+    # Check for / reset options
+    colors   = @colors   = var_obj.colors ? @colors
+    fmt      = @fmt      = var_obj.legend?.formatter ? @fmt      ? -> this.value
+    binWidth = @binWidth = var_obj.legend?.binWidth  ? @binWidth ? 40
+    enable   = @enable   = var_obj.legend?.enabled   ? @enabled  ? true
 
     # make sure there are enough colors
     b = bins.length
-    c = @colors.length
+    c = colors.length
     throw "#{b - c} more bins than colors!" if b > c
     throw "#{c - b} more colors than bins!" if b < c
 
     # create scale for breaks
-    color = d3.scale.threshold()
-      .domain bins
-      .range @colors
+    color = d3.scale.threshold().domain(bins).range(colors)
+
+    # Clear previous legend
+    @legend.empty()
+
+    # If a legend is desired
+    if enable
+      # Fill Legend with colors and bins
+      center = (@width - (binWidth*bins.length)) / 2
+      @legend
+        .selectAll('rect')
+          .data(bins)
+        .enter()
+        .append('rect')
+          .attr
+            width : binWidth
+            height : binWidth * 0.5
+            x : (d, i) -> center + i*binWidth
+            y : 50
+          .style
+            fill : (d) -> color(d*0.99)
+
+      # Add text to legend
+      @legend.selectAll('text')
+            .data(bins[..-2])
+          .enter()
+          .append('text')
+            .text (d) -> fmt.call({value : d})
+            .attr
+              y : 40
+              x : (d, i) -> center + (i+1)*binWidth - binWidth/3
 
     # Fill the counties with the appropriate color
     fill = (p) -> color(self.data[p.id]?[name] ? "#aaa")
@@ -203,6 +248,7 @@ class Map
     else
       @counties.attr 'fill', fill
 
+    # Method chaining
     return self
 
 
