@@ -44,7 +44,7 @@ class Map
       if (o = options[opt])
         self[opt] = o
       else
-        mapError("\"#{opt}\" not provided to Map.")
+        mapError "\"#{opt}\" not provided to Map."
 
     # Add tooltip
     @tooltip = options.tooltip ? {formatter : (->) , opacity : 0}
@@ -54,7 +54,7 @@ class Map
       self.countyJson = us
       self.loadCSV self.csv, ->
         self.render()
-        self.update(self.displayVariable)
+        self.update self.displayVariable
 
 
   #
@@ -87,7 +87,7 @@ class Map
   render : ->
 
     # Self Reference for inner function contexts
-    self = this
+    self = @
 
     # These "magic numbers" are not the pixel width and height,
     # but simply a starting point for the w/h ratio
@@ -162,31 +162,33 @@ class Map
                   .data topodata
                 .enter()
                   .append 'path'
-                  .attr 'class', 'urban-map-counties'
-                  .attr 'id', (d) -> d.id
-                  .attr 'd', path
+                  .attr
+                    class : 'urban-map-counties'
+                    id : (d) -> d.id
+                    d : path
                 .on 'mouseover', ->
                   # Call formatting function in context of
                   # county specific data
                   county_data = if @id of df then df[@id] else {}
-                  tooltip.html formatter.call(county_data)
+                  tooltip.html formatter.call county_data
                     .transition()
-                    .duration(100)
+                    .duration 100
                     .style
                       opacity : opacity
                 .on 'mouseout', ->
                   # Fade out tooltip if not over map
                   tooltip
                     .transition()
-                    .duration(100)
+                    .duration 100
                     .style
                       opacity : 0
 
     # Add state mesh
-    svg.append("path")
-        .datum(stateTopoData)
-        .attr("class", "urban-map-states")
-        .attr("d", path)
+    svg.append "path"
+        .datum stateTopoData
+        .attr
+          class : "urban-map-states"
+          d : path
         .style
           fill : 'none'
 
@@ -230,24 +232,24 @@ class Map
       # Fill Legend with colors and bins
       center = (@width - (binWidth*bins.length)) / 2
       @legend
-        .selectAll('rect')
-          .data(bins)
+        .selectAll 'rect'
+          .data bins
         .enter()
-        .append('rect')
+        .append 'rect'
           .attr
             width : binWidth
             height : binWidth * 0.5
             x : (d, i) -> center + i*binWidth
             y : 50
           .style
-            fill : (d) -> color(d*0.99)
+            fill : (d) -> color d*0.99
 
       # Add text to legend
-      @legend.selectAll('text')
-            .data(bins[..-2])
+      @legend.selectAll 'text'
+            .data bins[..-2]
           .enter()
-          .append('text')
-            .text (d) -> fmt.call({value : d})
+          .append 'text'
+            .text (d) -> fmt.call {value : d}
             .attr
               y : 40
               x : (d, i) -> center + (i+1)*binWidth - binWidth/3
@@ -258,7 +260,7 @@ class Map
     # Call transition if desired
     if (time = var_obj.transition)
       @counties.transition()
-        .duration Math.abs(time)
+        .duration Math.abs time
         .attr 'fill', fill
     else
       @counties.attr 'fill', fill
