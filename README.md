@@ -6,12 +6,7 @@
 
 A re-usable interactive US map for county level data features.
 
-
-
-###[example](http://datatools.urban.org/features/bsouthga/UrbanTemplates/Map)
-
-![click to play with](https://github.com/UrbanInstitute/UrbanTemplates/blob/master/example.png)
-
+[![click to play with](https://github.com/UrbanInstitute/UrbanTemplates/blob/master/example.png)](http://datatools.urban.org/features/bsouthga/UrbanTemplates/Map)
 
 ### Usage
 
