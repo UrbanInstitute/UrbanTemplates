@@ -10,45 +10,18 @@ A re-usable interactive US map for county level data features.
 
 ### Usage
 
-simply include `urban.map.min.js` (in the [lib](https://github.com/UrbanInstitute/UrbanTemplates/tree/master/lib) folder above) and create a map as follows (see `example.html` for detailed example usage).
+Include `urban.map.min.js` in your html file, along with the necessary D3 libraries:
 
-#### CSS
+```html
+<!-- Required D3 Scripts -->
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
 
-All aspects of the map can be styled using CSS, and the size of the map SVG is responsive to the size of its container.
-
-```css
-
-/* Example map container */
-#map {
-  display: block;
-  width: 80%;
-  min-width: 400px;
-  margin: 0px auto;
-}
-
-.urban-map-tooltip {
-  padding: 10px;
-  background-color: white;
-  color : #333;
-  border-radius : 5px;
-  border : 1px solid #aaa;
-}
-
-.urban-map-counties:hover {
-  stroke :orange;
-  opacity: 0.7;
-  stroke-width:3px;
-  cursor:pointer;
-}
-
-.urban-map-states {
-  stroke : white;
-  stroke-linejoin: round;
-}
+<!-- import urban.map.js -->
+<script src="urban.map.min.js"></script>
 ```
 
-
-#### Javascript 
+#### Javascript
 
 To create a map object, use the `Urban.Map` constructor, with options similar to below.
 
@@ -99,3 +72,40 @@ var map = new Urban.Map({
   }
 });
 ```
+
+#### CSS
+
+All aspects of the map can be styled using CSS, and the size of the map SVG is responsive to the size of its container.
+
+```css
+
+/* Example map container */
+#map {
+  display: block;
+  width: 80%;
+  min-width: 400px;
+  margin: 0px auto;
+}
+
+.urban-map-tooltip {
+  padding: 10px;
+  background-color: white;
+  color : #333;
+  border-radius : 5px;
+  border : 1px solid #aaa;
+}
+
+.urban-map-counties:hover {
+  stroke :orange;
+  opacity: 0.7;
+  stroke-width:3px;
+  cursor:pointer;
+}
+
+.urban-map-states {
+  stroke : white;
+  stroke-linejoin: round;
+}
+```
+
+

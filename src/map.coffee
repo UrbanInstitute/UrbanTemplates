@@ -275,7 +275,7 @@ class Map
 ## Export Module
 ##
 ##
-Urban = Urban or {}
+Urban ?= {}
 do ->
   Urban.Map = Map
   window.Urban = Urban
