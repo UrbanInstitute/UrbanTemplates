@@ -66,7 +66,6 @@ class Map
     # Self Reference for inner function contexts
     self = @
     cid = self.countyID
-
     d3.csv filename, (e, data) ->
       # Store data as object referenced by county id
       self.data = d = {}
@@ -74,7 +73,6 @@ class Map
         mapError("#{cid} not in csv!") if not (cid of row)
         d[row[cid]] = row
       callback()
-
     # Method chaining
     return self
 
@@ -135,7 +133,8 @@ class Map
                     )
 
     # Tooltip div
-    tooltip = d3.select('body').append('div')
+    d3.select('div.urban-map-tooltip').remove()
+    tooltipDiv = d3.select('body').append('div')
       .attr('class', 'urban-map-tooltip')
       .style
         display : "block"
@@ -145,8 +144,9 @@ class Map
     # Move tooltip to position above mouse
     d3.select('body').on 'mousemove', ->
       [x, y] = [d3.event.pageX, d3.event.pageY]
-      tt_bbox = tooltip.node().getBoundingClientRect()
-      tooltip.style
+      tooltipDiv = d3.select('div.urban-map-tooltip')
+      tt_bbox = tooltipDiv.node().getBoundingClientRect()
+      tooltipDiv.style
         top : "#{y - tt_bbox.height - 10}px"
         left : "#{x - tt_bbox.width/2}px"
 
@@ -169,15 +169,17 @@ class Map
                 .on 'mouseover', ->
                   # Call formatting function in context of
                   # county specific data
+                  tooltipDiv = d3.select('div.urban-map-tooltip')
                   county_data = if @id of df then df[@id] else {}
-                  tooltip.html formatter.call county_data
+                  tooltipDiv.html formatter.call county_data
                     .transition()
                     .duration 100
                     .style
                       opacity : opacity
                 .on 'mouseout', ->
                   # Fade out tooltip if not over map
-                  tooltip
+                  tooltipDiv = d3.select('div.urban-map-tooltip')
+                  tooltipDiv
                     .transition()
                     .duration 100
                     .style
@@ -275,7 +277,7 @@ class Map
 ## Export Module
 ##
 ##
-Urban ?= {}
 do ->
+  Urban = Urban or {}
   Urban.Map = Map
   window.Urban = Urban
