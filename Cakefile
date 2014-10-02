@@ -21,6 +21,6 @@ task 'sbuild', 'Sublime CoffeeBuilder of Urban Module', ->
   console.log "Building CoffeScript, compiling to /lib/..."
   exec 'coffee --compile --output lib/ src/', log
   # Smash and minify
-  exec "smash #{("./#{m}" for m in module).join(" ")} > ./lib/#{full}.js", log
-  exec "uglifyjs -m -o ./lib/#{full}.min.js ./lib/#{full}.js", log
+  exec "smash #{("./#{m}" for m in module).join(" ")} > ./#{full}.js", log
+  exec "uglifyjs -m -o ./#{full}.min.js ./#{full}.js", log
 
