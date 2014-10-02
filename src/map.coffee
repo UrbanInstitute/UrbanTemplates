@@ -49,12 +49,21 @@ class Map
     # Add tooltip
     @tooltip = options.tooltip ? {formatter : (->) , opacity : 0}
 
-    # Load geojson information and then csv data
-    d3.json options.geoJson, (e, us) ->
+    
+
+    if (us = Urban.cache[options.geoJson])
       self.countyJson = us
       self.loadCSV self.csv, ->
         self.render()
         self.update self.displayVariable
+    else
+      # Load geojson information and then csv data
+      d3.json options.geoJson, (e, us) ->
+        Urban.cache[options.geoJson] = us
+        self.countyJson = us
+        self.loadCSV self.csv, ->
+          self.render()
+          self.update self.displayVariable
 
 
   #
@@ -66,13 +75,20 @@ class Map
     # Self Reference for inner function contexts
     self = @
     cid = self.countyID
-    d3.csv filename, (e, data) ->
-      # Store data as object referenced by county id
-      self.data = d = {}
-      for row in data
-        mapError("#{cid} not in csv!") if not (cid of row)
-        d[row[cid]] = row
+
+    cache = Urban.cache
+
+    if cache[filename]
+      self.data = cache[filename]
       callback()
+    else
+      d3.csv filename, (e, data) ->
+        # Store data as object referenced by county id
+        self.data = d = {}
+        for row in data
+          mapError("#{cid} not in csv!") if not (cid of row)
+          d[row[cid]] = row
+        callback()
     # Method chaining
     return self
 
@@ -279,5 +295,6 @@ class Map
 ##
 do ->
   Urban = Urban or {}
+  Urban.cache ?= {}
   Urban.Map = Map
   window.Urban = Urban
