@@ -39,6 +39,10 @@ class Map
       'displayVariable',
       'renderTo'
     ]
+
+    if not (options.geoJson or Urban.countyGeoJson)
+      mapError "No county geoJson provided to Map."
+
     for opt in required
       if (o = options[opt])
         self[opt] = o
@@ -48,7 +52,7 @@ class Map
     # Add tooltip
     @tooltip = options.tooltip ? {formatter : (->) , opacity : 0}
 
-    if (us = Urban.cache[options.geoJson])
+    if us = (Urban.countyGeoJson or Urban.cache[options.geoJson])
       self.countyJson = us
       self.loadCSV self.csv, ->
         self.render()
