@@ -258,7 +258,8 @@ class Map
             x : (d, i) -> center + i*binWidth
             y : 50
           .style
-            fill : (d) -> color d*0.99
+            # hack to fill colors below bins
+            fill : (d) -> color d * (if d > 0 then 0.99 else 1.01)
 
       # Add text to legend
       @legend.selectAll 'text'
