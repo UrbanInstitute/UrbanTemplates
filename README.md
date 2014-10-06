@@ -62,7 +62,8 @@ var map = new Urban.Map({
   // (optional) HTML for tooltip using variables in csv
   "tooltip" : {
     // (optional) Function which has access to all data (from csv)
-    // for the county being mousedover
+    // for the county being mousedover. All counties have access to
+    // a default name variable : this._county_name
     formatter : function () {
       return '<div> ' + this._county_name + ' Demographics </div>' +
       '<div> White Percentage : ' + this.white + '% </div>' +
