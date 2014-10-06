@@ -52,7 +52,7 @@ class Map
     # Add tooltip
     @tooltip = options.tooltip ? {formatter : (->) , opacity : 0}
 
-    if us = (Urban.countyGeoJson or Urban.cache[options.geoJson])
+    if us = Urban.countyGeoJson or Urban.cache[options.geoJson]
       self.countyJson = us
       self.loadCSV self.csv, ->
         self.render()
