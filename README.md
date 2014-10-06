@@ -32,10 +32,12 @@ var map = new Urban.Map({
   "renderTo" : "#map",
   // CSV file containing data to show on map
   "csv" : "data/population.csv",
-  // geojson file of us counties
-  "geoJson" : "json/counties.geo.json",
+  // geojson file of us counties (not necessary if using urban.map.bundle.js)
+  "geoJson" : "../json/counties.geo.json",
   // Colors to use in choropleth
   "colors" : ["#b0d5f1","#82c4e9","#0096d2","#00578b","#000000"],
+  // Color for missing data
+  "missingColor" : "#aaa",
   // Variable that identifies the county in the csv
   "countyID" : "fips_code",
   // variable to color map by

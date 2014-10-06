@@ -50,7 +50,7 @@
     <script src="http://d3js.org/topojson.v1.min.js"></script>
 
     <!-- import urban.map.js -->
-    <script src="../urban.map.min.js"></script>
+    <script src="../urban.map.js"></script>
 
   </head>
   <body>
@@ -61,15 +61,20 @@
 
     <script>
 
+      /*
+        Create a new "Urban Map" object
+      */
       var map = new Urban.Map({
         // Container div to render map onto
         "renderTo" : "#map",
         // CSV file containing data to show on map
         "csv" : "../data/population.csv",
-        // geojson file of us counties
+        // geojson file of us counties (not necessary if using urban.map.bundle.js)
         "geoJson" : "../json/counties.geo.json",
         // Colors to use in choropleth
         "colors" : ["#b0d5f1","#82c4e9","#0096d2","#00578b","#000000"],
+        // Color for missing data
+        "missingColor" : "#aaa",
         // Variable that identifies the county in the csv
         "countyID" : "fips_code",
         // variable to color map by
@@ -96,7 +101,7 @@
           formatter : function () {
             // Function which has access to all data (from csv)
             // for the county being mousedover
-            return '<div> Demographics </div>' +
+            return '<div> ' + this._county_name + ' Demographics </div>' +
             '<div> White Percentage : ' + this.white + '% </div>' +
             '<div> Black Percentage : ' + this.black + '% </div>' +
             '<div> Latino Percentage :' + this.latino+ '% </div>'
@@ -106,6 +111,9 @@
         }
 
       });
+
+
+
 
       // Data changing example
       var change = true;
