@@ -31,12 +31,12 @@ var map = new Urban.Map({
   // Container div to render map onto
   "renderTo" : "#map",
   // CSV file containing data to show on map
-  "csv" : "data/population.csv",
+  "csv" : "../data/population.csv",
   // geojson file of us counties (not necessary if using urban.map.bundle.js)
   "geoJson" : "../json/counties.geo.json",
   // Colors to use in choropleth
   "colors" : ["#b0d5f1","#82c4e9","#0096d2","#00578b","#000000"],
-  // Color for missing data
+  // (optional) Color for missing data
   "missingColor" : "#aaa",
   // Variable that identifies the county in the csv
   "countyID" : "fips_code",
@@ -46,30 +46,30 @@ var map = new Urban.Map({
     "name" : "white_percent",
     // number of different breaks (exclude minimum value (0), include maximum)
     "breaks" : [20,40,60,80,100],
-    // Settings for map legend
+    // (optional) Settings for map legend
     "legend" : {
-      // Show legend in map
+      // (optional) Show legend in map
       "enabled" : true,
-      // Set the relative pixel width of the bins in the legend
+      // (optional) Set the relative pixel width of the bins in the legend
       "binWidth" : 40,
-      // Format for the legend
+      // (optional) Format for the legend
       formatter : function() {
         // access to value of bin
         return this.value + "%";
       }
     }
   },
-  // HTML for tooltip using variables in csv
+  // (optional) HTML for tooltip using variables in csv
   "tooltip" : {
+    // (optional) Function which has access to all data (from csv)
+    // for the county being mousedover
     formatter : function () {
-      // Function which has access to all data (from csv)
-      // for the county being mousedover
-      return '<div> Demographics </div>' +
+      return '<div> ' + this._county_name + ' Demographics </div>' +
       '<div> White Percentage : ' + this.white + '% </div>' +
       '<div> Black Percentage : ' + this.black + '% </div>' +
       '<div> Latino Percentage :' + this.latino+ '% </div>'
     },
-    // Opacity of tooltip
+    // (optional) Opacity of tooltip
     opacity : 0.9
   }
 });
