@@ -33,7 +33,6 @@ class Map
 
     # Check for necessary options
     required = [
-      'geoJson',
       'csv',
       'colors',
       'countyID',
@@ -59,6 +58,7 @@ class Map
       d3.json options.geoJson, (e, us) ->
         Urban.cache[options.geoJson] = us
         self.countyJson = us
+        console.log us
         self.loadCSV self.csv, ->
           self.render()
           self.update self.displayVariable
@@ -73,7 +73,6 @@ class Map
     # Self Reference for inner function contexts
     self = @
     cid = self.countyID
-
     cache = Urban.cache
 
     if cache[filename]
@@ -185,6 +184,7 @@ class Map
                   # county specific data
                   tooltipDiv = d3.select('div.urban-map-tooltip')
                   county_data = if @id of df then df[@id] else {}
+                  county_data._county_name = Urban.countyNames?[@id]
                   tooltipDiv.html formatter.call county_data
                     .transition()
                     .duration 100
@@ -224,6 +224,7 @@ class Map
     # Bins and name for variable to display
     bins = @bins = var_obj.breaks ? @bins ? mapError("No bins provided!")
     name = var_obj.name ? mapError("No variable name provided!")
+    missingColor = @missingColor = var_obj.missingColor or "#aaa"
 
     # Check for / reset options
     colors   = @colors   = var_obj.colors ? @colors
@@ -259,7 +260,14 @@ class Map
             y : 50
           .style
             # hack to fill colors below bins
-            fill : (d) -> color d * (if d > 0 then 0.99 else 1.01)
+            fill : (d) -> color d * (
+              if d == 0
+                -0.01
+              else if d > 0
+                0.99
+              else
+                1.01
+            )
 
       # Add text to legend
       @legend.selectAll 'text'
@@ -272,7 +280,9 @@ class Map
               x : (d, i) -> center + (i+1)*binWidth - binWidth/3
 
     # Fill the counties with the appropriate color
-    fill = (p) -> color(self.data[p.id]?[name] ? "#aaa")
+    fill = (p) ->
+      v = self.data?[p.id]?[name]
+      if v then color(v) else missingColor
 
     # Call transition if desired
     if (time = var_obj.transition)
