@@ -6,13 +6,14 @@
 
 A re-usable interactive US map for county level data features.
 
-[![click to play with](https://github.com/UrbanInstitute/UrbanTemplates/blob/master/examples/example.png)](http://datatools.urban.org/features/bsouthga/UrbanTemplates/Map/grid.html)
-
 ### Usage
 
 Include `urban.map.min.js` in your html file, along with the necessary D3 libraries:
 
 ```html
+<!-- import urban.map.css -->
+<link rel="stylesheet" href="css/urban.map.css">
+
 <!-- Required D3 Scripts -->
 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 <script src="http://d3js.org/topojson.v1.min.js"></script>
@@ -27,25 +28,45 @@ To create a map object, use the `Urban.Map` constructor, with options similar to
 
 
 ```javascript
+/*
+  Create a new "Urban Map" object
+*/
 var map = new Urban.Map({
-  // Container div to render map onto
+  // Container div to render map onto (can also just render to 'body')
   "renderTo" : "#map",
+
   // CSV file containing data to show on map
-  "csv" : "../data/population.csv",
-  // geojson file of us counties (not necessary if using urban.map.bundle.js)
-  "geoJson" : "../json/counties.geo.json",
-  // Colors to use in choropleth
-  "colors" : ["#b0d5f1","#82c4e9","#0096d2","#00578b","#000000"],
-  // (optional) Color for missing data
-  "missingColor" : "#aaa",
+  "csv" : "data/population.csv",
+
+  // geojson file of us counties (not necessary if using urban.map.bundle.js
+  "geoJson" : "json/counties.geo.json",
+
   // Variable that identifies the county in the csv
   "countyID" : "fips_code",
+
+  // Title for map
+  "title" : ( "Lorem ipsum dolor sit amet, " +
+              "consectetur adipisicing elit. Ipsam, vel!"),
+
   // variable to color map by
   "displayVariable" : {
+
     // name of variable in csv
     "name" : "white_percent",
-    // number of different breaks (exclude minimum value (0), include maximum)
-    "breaks" : [20,40,60,80,100],
+
+    // Colors to use in choropleth
+    "colors" : ["#b0d5f1","#82c4e9","#0096d2","#00578b","#000000"],
+
+    // number of different breaks (exclude max and min)
+    "breaks" : [20,40,60,80],
+
+    /*
+      ============================
+        optional settings
+      ============================
+    */
+    // (optional) Color for missing data
+    "missingColor" : "#aaa",
     // (optional) Settings for map legend
     "legend" : {
       // (optional) Show legend in map
@@ -53,25 +74,35 @@ var map = new Urban.Map({
       // (optional) Set the relative pixel width of the bins in the legend
       "binWidth" : 40,
       // (optional) Format for the legend
-      formatter : function() {
+      "formatter" : function() {
         // access to value of bin
         return this.value + "%";
       }
     }
+
   },
+
   // (optional) HTML for tooltip using variables in csv
   "tooltip" : {
     // (optional) Function which has access to all data (from csv)
-    // for the county being mousedover. All counties have access to
-    // a default name variable : this._county_name
-    formatter : function () {
-      return '<div> ' + this._county_name + ' Demographics </div>' +
-      '<div> White Percentage : ' + this.white + '% </div>' +
-      '<div> Black Percentage : ' + this.black + '% </div>' +
-      '<div> Latino Percentage :' + this.latino+ '% </div>'
+    // for the county being mousedover
+    "formatter" : function () {
+
+      var check_if_missing = function(variable) {
+        // Check to see if the variable is undefined,
+        // returning missing text if so.
+        return variable ? variable + '%' : '(Not Available)';
+      };
+
+      return '<div> ' + this._county_name + ", " + this._state_name + '</div>' +
+      '<div> White : ' + check_if_missing(this.white) + '</div>' +
+      '<div> Black : ' + check_if_missing(this.black) + '</div>' +
+      '<div> Latino : ' + check_if_missing(this.latino) + '</div>'
+
     },
+
     // (optional) Opacity of tooltip
-    opacity : 0.9
+    "opacity" : 0.9
   }
 });
 ```
