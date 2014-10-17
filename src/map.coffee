@@ -31,27 +31,36 @@ class Map
     self = @
     options ?= {}
 
+    #
+    # check for geojson passed in options or
+    # preloaded with bundle
+    #
+    if not (options.geoJson or Urban.countyGeoJson)
+      mapError "No county geoJson provided to Map."
+
     # Check for necessary options
     required = [
       'csv',
-      'colors',
       'countyID',
       'displayVariable',
       'renderTo'
     ]
-
-    if not (options.geoJson or Urban.countyGeoJson)
-      mapError "No county geoJson provided to Map."
-
     for opt in required
       if (o = options[opt])
         self[opt] = o
       else
         mapError "\"#{opt}\" not provided to Map."
 
-    # Add tooltip
+    # Check for tooltip formatting function, creating placeholder if nec.
     @tooltip = options.tooltip ? {formatter : (->) , opacity : 0}
 
+    # Default title to lorem
+    @title = options.title ? "
+        Lorem ipsum dolor sit amet,
+        consectetur adipisicing elit. Ipsam, vel!
+      "
+
+    # Checked for cached geojson, loading if not
     if us = Urban.countyGeoJson or Urban.cache[options.geoJson]
       self.countyJson = us
       self.loadCSV self.csv, ->
@@ -62,7 +71,6 @@ class Map
       d3.json options.geoJson, (e, us) ->
         Urban.cache[options.geoJson] = us
         self.countyJson = us
-        console.log us
         self.loadCSV self.csv, ->
           self.render()
           self.update self.displayVariable
@@ -78,17 +86,19 @@ class Map
     self = @
     cid = self.countyID
     cache = Urban.cache
-
+    # Check for cached data, downloading if nec.
     if cache[filename]
       self.data = cache[filename]
       callback()
     else
       d3.csv filename, (e, data) ->
         # Store data as object referenced by county id
-        self.data = d = {}
+        cache[filename] = self.data = d = {}
+        # convert list to object = countyID => row
         for row in data
           mapError("#{cid} not in csv!") if not (cid of row)
           d[row[cid]] = row
+        # run callback
         callback()
     # Method chaining
     return self
@@ -113,28 +123,44 @@ class Map
 
     # Albers projection centered in the contianer div
     projection = d3.geo.albersUsa()
-                    .scale width
+                    .scale width*1.2
                     .translate [width/2, height/2]
 
     # Albers path generator
     path = d3.geo.path().projection projection
 
     # Container element selection
-    renderToElement = d3.select @renderTo
+    @renderToElement = renderToElement = d3.select @renderTo
+
+    addMapDiv = (class_name, html) ->
+      renderToElement.append 'div'
+        .attr 'class', class_name
+        .html html
+
+    # Empty container element of contents
+    renderToElement.html ''
+
+    # Append title text div
+    addMapDiv 'urban-map-title', @title
+
+    # Div container for chart legend
+    @legend_container = legend_container = renderToElement.append 'div'
+      .attr 'class', 'urban-map-legend'
+
+    # Calculate height and width for legend
+    # based on container dimensions (set by css)
+    legend_dims = legend_container.node().getBoundingClientRect()
+    @legend_height = legend_height = legend_dims.height
+    @legend_width = legend_width = legend_dims.width or (legend_dims.height / 2)
 
     # Create svg with dynamic viewbox
-    svg = renderToElement.html ''
+    @svg = svg = renderToElement
             .append 'svg'
             .attr
               class : "urban-map"
               preserveAspectRatio : "xMinYMin slice"
               viewBox :  "0 0 #{width} #{height}"
             .append 'g'
-
-    # Choropleth legend container
-    @legend = svg.append 'g'
-                .attr
-                  class : 'urban-map-legend'
 
     # County topology
     topodata = topojson.feature(
@@ -158,14 +184,14 @@ class Map
         position : "absolute"
         opacity : 0
 
+
     # Move tooltip to position above mouse
-    d3.select('body').on 'mousemove', ->
+    @renderToElement.on 'mousemove', ->
       [x, y] = [d3.event.pageX, d3.event.pageY]
-      tooltipDiv = d3.select('div.urban-map-tooltip')
       tt_bbox = tooltipDiv.node().getBoundingClientRect()
       tooltipDiv.style
-        top : "#{y - tt_bbox.height - 10}px"
-        left : "#{x - tt_bbox.width/2}px"
+        top :  "#{y - tt_bbox.height - 20}px"
+        left : "#{x - tt_bbox.width / 2  }px"
 
     # References to data, tooltip formatting function,
     # and desired opacity
@@ -188,20 +214,18 @@ class Map
                   # county specific data
                   tooltipDiv = d3.select('div.urban-map-tooltip')
                   county_data = if @id of df then df[@id] else {}
+                  county_data._state_name = Urban.stateNames?[@id[...-3]]
                   county_data._county_name = Urban.countyNames?[@id]
                   tooltipDiv.html formatter.call county_data
-                    .transition()
-                    .duration 100
                     .style
                       opacity : opacity
                 .on 'mouseout', ->
                   # Fade out tooltip if not over map
                   tooltipDiv = d3.select('div.urban-map-tooltip')
                   tooltipDiv
-                    .transition()
-                    .duration 100
                     .style
                       opacity : 0
+                      top : "-1000px"
 
     # Add state mesh
     svg.append "path"
@@ -211,6 +235,13 @@ class Map
           d : path
         .style
           fill : 'none'
+
+    #
+    # append additional divs for sharing / source
+    #
+    addMapDiv 'urban-map-source'
+    addMapDiv 'urban-map-logo'
+    addMapDiv 'urban-map-social'
 
     # Method chaining
     return self
@@ -235,33 +266,110 @@ class Map
     fmt      = @fmt      = var_obj.legend?.formatter ? @fmt      ? -> this.value
     binWidth = @binWidth = var_obj.legend?.binWidth  ? @binWidth ? 40
     enable   = @enable   = var_obj.legend?.enabled   ? @enabled  ? true
+    legend_text = @legend_text = var_obj.legend?.title ? @legend_text ? "Lorem ipsum dolor sit amet"
+    source = @source = var_obj.source ? @source ?"Source : [important source info]..."
+
+    logo = @logo = var_obj.logo ? "Urban Institute"
+
+    url = window.location
+
+    social = @social = var_obj.social ? @social ? "
+      <div class=\"urban-map-share\" id=\"share\">
+        <div class=\"urban-map-socialtext\"><span>SHARE</span></div>
+        <input class=\"urban-map-input\" type=\"text\" id=\"share\" value=\"#{url}\"/>
+        <span class=\"urban-map-button\" id=\"share\">SHARE</span>
+      </div>
+      <div class=\"urban-map-embed\" id=\"embed\">
+        <div class=\"urban-map-socialtext\"><span>EMBED</span></div>
+        <span class=\"urban-map-button\" id=\"embed\">COPY</span>
+        <input class=\"urban-map-input\" type=\"text\" id=\"embed\" />
+      </div>
+    "
+
+    d3.select '.urban-map-source'
+      .html source
+
+    d3.select '.urban-map-logo'
+      .html logo
+
+    d3.select '.urban-map-social'
+      .html social
+
+    d3.select '.urban-map-embed .urban-map-input'
+      .property 'value', "\<iframe src=\"#{url}\" /\>"
+
+    d3.selectAll '.urban-map-input'
+      .on 'click', -> @select()
+
+    d3.selectAll '.urban-map-button'
+      .on 'click', ->
+        d3.select ".urban-map-input##{@id}"
+          .call -> @select()
+
+    n_bins = bins.length
 
     # make sure there are enough colors
-    b = bins.length
+    b = n_bins
     c = colors.length
-    throw "#{b - c} more bins than colors!" if b > c
-    throw "#{c - b} more colors than bins!" if b < c
+    # There should be one more color than bins
+    d = c-b
+
+    if d > 1
+      console.log "
+        Warning, more bins than colors were provided.
+        #{d-1} bins were removed, as there needs to be
+        one more color than the number of bins.
+      "
+    if d <= 0
+      console.log "
+        Warning, too many colors were provided.
+        #{-(d-1)} colors were removed, as there
+        needs to be one more color than the
+        number of bins.
+      "
+
+    # Correct ratio of bins to colors
+    bins = bins[...d-1] if d <= 0
+    colors = colors[...-d+1] if d > 1
 
     # create scale for breaks
     color = d3.scale.threshold().domain(bins).range(colors)
 
     # Clear previous legend
-    @legend.empty()
+    @legend_container.selectAll("*").remove()
+
+    # within legend div, append div for title
+    @legend_title = @legend_container.append('div')
+        .attr 'class', 'urban-map-legend-title'
+
+    # Append svg element to draw legend
+    @legend = @legend_container
+          .append 'svg'
+            .attr
+              preserveAspectRatio : "xMinYMin slice"
+              viewBox :  "0 0 #{@legend_width} #{@legend_height}"
+            .append 'g'
+
+    # Spacing between legend bins
+    offset = 2
+
+    # Width of colored bins
+    binWidth = (@legend_width / (n_bins+1)) - offset*(n_bins)
 
     # If a legend is desired
     if enable
       # Fill Legend with colors and bins
-      center = (@width - (binWidth*bins.length)) / 2
+      center = (@legend_width - (binWidth*n_bins)) / 2
       @legend
         .selectAll 'rect'
-          .data bins
+          .data bins.concat bins[-1]*2
         .enter()
         .append 'rect'
           .attr
             width : binWidth
-            height : binWidth * 0.5
-            x : (d, i) -> center + i*binWidth
-            y : 50
+            height : binWidth * 0.333
+            x : (d, i) -> i*binWidth + i*offset
+            y : @legend_height * .5
           .style
             # hack to fill colors below bins
             fill : (d) -> color d * (
@@ -275,13 +383,23 @@ class Map
 
       # Add text to legend
       @legend.selectAll 'text'
-            .data bins[..-2]
+            .data bins
           .enter()
           .append 'text'
-            .text (d) -> fmt.call {value : d}
+            .attr 'class', 'urban-map-legend-label'
+            .text (d) -> fmt.call value : d
+
+      @legend.selectAll '.urban-map-legend-label'
             .attr
-              y : 40
-              x : (d, i) -> center + (i+1)*binWidth - binWidth/3
+              y : @legend_height * .5 - 10
+              x : (d, i) ->
+                # Calculate width of bin text
+                # and use it to position over
+                # gap between successive bins
+                w = @getBBox().width
+                (i+1)*binWidth - w/2 + i*offset/2
+
+      @legend_title.text legend_text
 
     # Fill the counties with the appropriate color
     fill = (p) ->

@@ -1,0 +1,172 @@
+/*************************************
+  Template CSS file for urban.map.js
+  Ben Southgate (bsouthga@gmail.com)
+  10/16/14
+**************************************/
+
+
+/*
+  --------------------------------
+  specific to the current project
+  --------------------------------
+*/
+
+body {
+  font-family:  'Lato', sans-serif; color:#aaa;
+}
+
+h1 {
+  font-size: 40px;
+  text-align: center;
+  font-weight: normal;
+}
+
+#map {
+  display: block;
+  width: 80%;
+  min-width: 400px;
+  max-width: 600px;
+  margin: 20px auto;
+  border: 4px solid #ccc;
+}
+
+
+/*
+  -------------------------------
+  Classes created by urban.map.js
+  -------------------------------
+*/
+
+/* popup tooltip when hovering over a county */
+.urban-map-tooltip {
+  padding: 10px;
+  background-color: white;
+  color : #333;
+  border-radius : 5px;
+  border : 1px solid #aaa;
+}
+
+/* the county svg elements themselves */
+.urban-map-counties:hover {
+  stroke :orange;
+  opacity: 0.7;
+  stroke-width:3px;
+  cursor:pointer;
+}
+
+/* the US state elements */
+.urban-map-states {
+  stroke : white;
+  stroke-linejoin: round;
+}
+
+/* title text displayed above map */
+.urban-map-title {
+  width: 50%;
+  min-width: 300px;
+  float: left;
+  display: inline-block;
+  font-size: 26px;
+  padding: 5px;
+}
+
+/* the div containing the svg legend */
+.urban-map-legend {
+  width: 30%;
+  padding: 2%;
+  min-width: 250px;
+  height: 70px;
+  float: right;
+  display: inline-block;
+}
+
+/* legend title text */
+.urban-map-legend-title {
+  padding-top: 10px;
+  font-size: 18px;
+}
+
+/* legend bin labels (svg text elements) */
+.urban-map-legend-label {
+  font-size: 14px;
+}
+
+.urban-map-social {
+  width: 100%;
+  overflow:hidden;
+  display: block;
+}
+
+.urban-map-source {
+  display: inline-block;
+  float: left;
+  padding: 0 10px;
+}
+
+.urban-map-logo {
+  display: inline-block;
+  float: right;
+  padding: 0 10px;
+}
+
+.urban-map-share, .urban-map-embed {
+  width: 45%;
+  display: inline-block;
+  padding: 10px;
+}
+
+.urban-map-socialtext {
+  width: 100%;
+  overflow:hidden;
+}
+
+.urban-map-embed,
+.urban-map-embed .urban-map-input,
+.urban-map-embed .urban-map-button,
+.urban-map-embed .urban-map-socialtext span
+{
+  float: right;
+}
+
+.urban-map-share,
+.urban-map-share .urban-map-input,
+.urban-map-share .urban-map-button,
+.urban-map-share .urban-map-socialtext span
+{
+  float: left;
+}
+
+.urban-map-input {
+  display:  inline-block;
+  width: 50%;
+  height: 25px;
+  line-height: 25px;
+  font-size: 16px;
+  padding: 5px;
+  margin: 0;
+  border: none;
+  background-color: #eee;
+  -moz-box-sizing: content-box;
+  -webkit-box-sizing: content-box;
+  box-sizing: content-box;
+  color :#999;
+}
+
+.urban-map-button {
+  display:  inline-block;
+  text-align: center;
+  width: 60px;
+  height: 25px;
+  line-height: 25px;
+  font-size: 16px;
+  margin: 0;
+  background-color: #0096d2;
+  color :white;
+  padding: 5px;
+  cursor: pointer;
+  border: none;
+}
+
+.urban-map-button:hover {
+  background-color: #999;
+}

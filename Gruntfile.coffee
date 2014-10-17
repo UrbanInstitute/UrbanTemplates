@@ -1,5 +1,5 @@
 #
-# Build System for Modeler Project
+# Build System for Urban Templates
 # Ben Southgate
 # 10/07/14
 #
@@ -33,7 +33,9 @@ module.exports = (grunt) ->
         ],
         tasks: ['coffee', 'concat', 'uglify:js']
       html :
-        files : ['./examples/example.html']
+        files : ['./index.html']
+      css : 
+        files : ['./css/*.css']
       options :
         livereload : true
     concat :
@@ -43,14 +45,16 @@ module.exports = (grunt) ->
         src : [
           "lib/map.js",
           "lib/counties.geo.js",
-          "lib/county_names.js"
+          "lib/county_names.js",
+          "lib/state_names.js"
         ]
         dest : './urban.map.js'
     browserSync:
       bsFiles:
         src : [
           './urban.map.js',
-          './examples/index.html'
+          './css/urban.map.css',
+          './index.html'
         ]
       options:
         watchTask: true
