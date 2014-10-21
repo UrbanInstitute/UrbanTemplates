@@ -7,7 +7,7 @@
 A re-usable interactive US map for county level data features.
 
 
-### Building
+### Building from source
 
 NodeJS, GruntJS, and BrowserSync are required for building from source. Once they are installed, run the following commands:
 
