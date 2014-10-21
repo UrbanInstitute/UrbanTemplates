@@ -1,17 +1,182 @@
 <!DOCTYPE html>
-<html>
-  <head>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bootstrap 101 Template</title>
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
     <!-- import urban.map.css -->
     <link rel="stylesheet" href="css/urban.map.css">
+
     <!-- Required D3 Scripts -->
     <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
     <script src="http://d3js.org/topojson.v1.min.js"></script>
+
     <!-- import urban.map.js -->
     <script src="urban.map.js"></script>
-  </head>
-  <body>
-    <h1>responsive D3 map template</h1>
+
+    <!-- CSS for map template -->
+    <style type="text/css">
+        @import url("http://fonts.googleapis.com/css?family=Lato");
+        body {
+            font-family: 'Lato', sans-serif;
+            color: #000;
+        }
+        h1 {
+            padding : 10px;
+            font-size: 28px;
+            text-align: left;
+            font-weight: normal;
+        }
+        #map {
+            display: block;
+            min-width: 400px;
+            max-height: 600px;
+            width: 100%;
+            background-color: red;
+            float: left;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        #legend {
+            width: 400px;
+            height: 150px;
+            background-color: yellow;
+            float: right;
+            display: block;
+        }
+        #title {
+            width: 50%;
+            float: left;
+            display: block;
+        }
+        #source {
+            width: 50%;
+            float: left;
+            display: block;
+            font-size: 0.8em;
+        }
+        #credit {
+            float: right;
+            display: block;
+            font-weight: 900;
+            letter-spacing: 1.5pt;
+            text-align: right;
+            font-size: 0.8em;
+        }
+        #credit a {
+            text-decoration: none;
+            color: inherit;
+        }
+        #urban {
+            color: #1696d2;
+        }
+        .share {
+            width: 50%;
+            min-width: 300px;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            float: left;
+            display: block;
+        }
+        .shareTitle {
+            font-size: 0.9em;
+            text-transform: uppercase;
+        }
+        .btn{
+            height: 40px;
+            width: 100%;
+            min-width: 400px;
+            margin: -10px;
+            float:left;
+            display: block;
+        }
+        .button-link{
+            min-width: 200px;
+         width: 75%;
+            height: 40px;
+            background-color: #f5f6f6;
+            color: #8c8e90;
+            font-size: 1.2 em;
+            padding:10px;
+            float: left;
+            text-align: left;
+            text-overflow: ellipsis;
+        }
+        .share-btn{
+         background-color: #1696d2;
+            height: 40px;
+            float: left;
+            min-width: 60px;
+            width: 25%;
+            padding: 10px;
+            color: white;
+            text-transform: uppercase;
+            text-align: center;
+            display: inline;
+        }
+        .share-btn:hover{
+         background-color: black;   
+        }
+        .share-btn:active{
+         background-color: #333;   
+        }
+        #button {
+            display: block;
+            margin: 0 auto;
+            padding: 5px 10px;
+            width: 120px;
+            font-size: 24px;
+            background-color: #0096d2;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        #button:hover {
+            background-color: #aaa;
+        }
+    </style>
+
+
+</head>
+
+<body>
+
+    <div id="title">
+        <h1>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, vel!</h1>
+    </div>
+    <div id="legend"></div>
     <div id="map"></div>
+    <div id="source"><b>Source:&nbsp;</b>This is where the source goes</div>
+    <div id="credit">
+        <a href="http://www.urban.org/">
+            <span id="urban">URBAN</span>&nbsp;INSTITUTE</a>
+    </div>
+    <div class="share">
+        <div class="shareTitle">Share this map</div>
+       <div class="btn">
+            <div class="button-link">http://urbn.is/72xs8</div>
+            <a href="#" target="_blank"><div class="share-btn">Share</div></a>
+       </div>
+    </div>
+    <div class="share">
+        <div class="shareTitle">Embed this map</div>
+        <div class="btn">
+            <div class="button-link">http://somethingsomethingsomething/itsreally/long</div>
+            <a href="#" target="_blank"><div class="share-btn">Copy</div></a>
+       </div>
+    </div>
+
     <script>
       /*
         Create a new "Urban Map" object
@@ -19,32 +184,29 @@
       var map = new Urban.Map({
         // Container div to render map onto (can also just render to 'body')
         "renderTo" : "#map",
-
         // CSV file containing data to show on map
         "csv" : "data/population.csv",
-
         // geojson file of us counties (not necessary if using urban.map.bundle.js
         "geoJson" : "json/counties.geo.json",
-
         // Variable that identifies the county in the csv
         "countyID" : "fips_code",
-
         // Title for map
-        "title" : ( "Lorem ipsum dolor sit amet, " +
+        "title" : {
+          // defaults to disabled
+          "enabled" : false,
+          "text" : ("Lorem ipsum dolor sit amet, " +
                     "consectetur adipisicing elit. Ipsam, vel!"),
-
+          // (optional) if not given, JS will create div in map
+          "renderTo" : "title"
+        },
         // variable to color map by
         "displayVariable" : {
-
           // name of variable in csv
           "name" : "white_percent",
-
           // Colors to use in choropleth
           "colors" : ["#b0d5f1","#82c4e9","#0096d2","#00578b","#000000"],
-
           // number of different breaks (exclude max and min)
           "breaks" : [20,40,60,80],
-
           /*
             ============================
               optional settings
@@ -54,6 +216,8 @@
           "missingColor" : "#aaa",
           // (optional) Settings for map legend
           "legend" : {
+            // (optional) - will create div for legend if not given
+            "renderTo" : "#legend",
             // (optional) Show legend in map
             "enabled" : true,
             // (optional) Set the relative pixel width of the bins in the legend
@@ -64,32 +228,32 @@
               return this.value + "%";
             }
           }
-
         },
-
         // (optional) HTML for tooltip using variables in csv
         "tooltip" : {
           // (optional) Function which has access to all data (from csv)
           // for the county being mousedover
           "formatter" : function () {
-
             var check_if_missing = function(variable) {
               // Check to see if the variable is undefined,
               // returning missing text if so.
               return variable ? variable + '%' : '(Not Available)';
             };
-
             return '<div> ' + this._county_name + ", " + this._state_name + '</div>' +
             '<div> White : ' + check_if_missing(this.white) + '</div>' +
             '<div> Black : ' + check_if_missing(this.black) + '</div>' +
             '<div> Latino : ' + check_if_missing(this.latino) + '</div>'
-
           },
-
           // (optional) Opacity of tooltip
           "opacity" : 0.9
         }
       });
     </script>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="lib/bootstrap.min.js"></script>
+
   </body>
 </html>

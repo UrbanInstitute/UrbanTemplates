@@ -6,6 +6,23 @@
 
 A re-usable interactive US map for county level data features.
 
+
+### Building
+
+NodeJS, GruntJS, and BrowserSync are required for building from source. Once they are installed, run the following commands:
+
+First install dependencies, then run the following to install local references:
+
+```
+npm install
+```
+
+Finally, simply "grunt" to build the project and start a dev server. A browser window should open automatically.
+
+```
+grunt
+```
+
 ### Usage
 
 Include `urban.map.min.js` in your html file, along with the necessary D3 libraries:

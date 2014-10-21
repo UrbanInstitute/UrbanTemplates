@@ -25,11 +25,11 @@ class Map
   # Map Constructor
   #
   #
-  constructor : (options) ->
+  constructor : (@options) ->
 
     # Self Reference for inner function contexts
     self = @
-    options ?= {}
+    options = @options or {}
 
     #
     # check for geojson passed in options or
@@ -55,10 +55,11 @@ class Map
     @tooltip = options.tooltip ? {formatter : (->) , opacity : 0}
 
     # Default title to lorem
-    @title = options.title ? "
-        Lorem ipsum dolor sit amet,
-        consectetur adipisicing elit. Ipsam, vel!
-      "
+    if options.title.enabled
+      @title = options.title.text ? "
+          Lorem ipsum dolor sit amet,
+          consectetur adipisicing elit. Ipsam, vel!
+        "
 
     # Checked for cached geojson, loading if not
     if us = Urban.countyGeoJson or Urban.cache[options.geoJson]
@@ -114,12 +115,19 @@ class Map
     # Self Reference for inner function contexts
     self = @
 
-    # These "magic numbers" are not the pixel width and height,
+    # Container element selection
+    @renderToElement = renderToElement = d3.select @renderTo
+
+    # This "magic number" is not the pixel width and height ratio,
     # but simply a starting point for the w/h ratio
     # which tightly bounds the map. The actual visible
     # dimensions are set by the svg viewbox.
     width = @width = 1011
     height = @hieght = 588
+
+    ratio = width / height
+
+
 
     # Albers projection centered in the contianer div
     projection = d3.geo.albersUsa()
@@ -129,23 +137,22 @@ class Map
     # Albers path generator
     path = d3.geo.path().projection projection
 
-    # Container element selection
-    @renderToElement = renderToElement = d3.select @renderTo
-
-    addMapDiv = (class_name, html) ->
-      renderToElement.append 'div'
-        .attr 'class', class_name
-        .html html
-
     # Empty container element of contents
     renderToElement.html ''
 
     # Append title text div
-    addMapDiv 'urban-map-title', @title
+    if @options.title.enabled
+      renderToElement.append 'div'
+        .attr 'class', 'urban-map-title'
+        .html @title
 
     # Div container for chart legend
-    @legend_container = legend_container = renderToElement.append 'div'
-      .attr 'class', 'urban-map-legend'
+    renderLegend = @displayVariable?.legend?.renderTo
+    @legend_container = legend_container =
+      if renderLegend
+        d3.select renderLegend
+      else
+        renderToElement.append 'div'
 
     # Calculate height and width for legend
     # based on container dimensions (set by css)
@@ -158,9 +165,26 @@ class Map
             .append 'svg'
             .attr
               class : "urban-map"
-              preserveAspectRatio : "xMinYMin slice"
+              preserveAspectRatio : "xMinYMin meet"
               viewBox :  "0 0 #{width} #{height}"
             .append 'g'
+
+    #
+    #
+    # Constrain svg to maximum dimensions, allowing for centering
+    #
+    #
+    max_height = parseInt(renderToElement.style 'max-height') or 0
+    max_width = parseInt(renderToElement.style 'max-width') or 0
+    width_bound = Math.max max_width, ratio*max_height
+    height_bound = Math.max max_height, max_width / ratio
+    if width_bound > 0
+      renderToElement.select('svg.urban-map')
+        .style('max-width', width_bound+'px')
+    if height_bound > 0
+      renderToElement.select('svg.urban-map')
+        .style('max-height', width_bound+'px')
+
 
     # County topology
     topodata = topojson.feature(
@@ -236,13 +260,6 @@ class Map
         .style
           fill : 'none'
 
-    #
-    # append additional divs for sharing / source
-    #
-    addMapDiv 'urban-map-source'
-    addMapDiv 'urban-map-logo'
-    addMapDiv 'urban-map-social'
-
     # Method chaining
     return self
 
@@ -263,49 +280,9 @@ class Map
 
     # Check for / reset options
     colors   = @colors   = var_obj.colors ? @colors
-    fmt      = @fmt      = var_obj.legend?.formatter ? @fmt      ? -> this.value
+    fmt      = @fmt      = var_obj.legend?.formatter ? @fmt      ? -> @value
     binWidth = @binWidth = var_obj.legend?.binWidth  ? @binWidth ? 40
     enable   = @enable   = var_obj.legend?.enabled   ? @enabled  ? true
-    legend_text = @legend_text = var_obj.legend?.title ? @legend_text ? "Lorem ipsum dolor sit amet"
-    source = @source = var_obj.source ? @source ?"Source : [important source info]..."
-
-    logo = @logo = var_obj.logo ? "Urban Institute"
-
-    url = window.location
-
-    social = @social = var_obj.social ? @social ? "
-      <div class=\"urban-map-share\" id=\"share\">
-        <div class=\"urban-map-socialtext\"><span>SHARE</span></div>
-        <input class=\"urban-map-input\" type=\"text\" id=\"share\" value=\"#{url}\"/>
-        <span class=\"urban-map-button\" id=\"share\">SHARE</span>
-      </div>
-      <div class=\"urban-map-embed\" id=\"embed\">
-        <div class=\"urban-map-socialtext\"><span>EMBED</span></div>
-        <span class=\"urban-map-button\" id=\"embed\">COPY</span>
-        <input class=\"urban-map-input\" type=\"text\" id=\"embed\" />
-      </div>
-    "
-
-    d3.select '.urban-map-source'
-      .html source
-
-    d3.select '.urban-map-logo'
-      .html logo
-
-    d3.select '.urban-map-social'
-      .html social
-
-    d3.select '.urban-map-embed .urban-map-input'
-      .property 'value', "\<iframe src=\"#{url}\" /\>"
-
-    d3.selectAll '.urban-map-input'
-      .on 'click', -> @select()
-
-    d3.selectAll '.urban-map-button'
-      .on 'click', ->
-        d3.select ".urban-map-input##{@id}"
-          .call -> @select()
-
     n_bins = bins.length
 
     # make sure there are enough colors
@@ -338,16 +315,13 @@ class Map
     # Clear previous legend
     @legend_container.selectAll("*").remove()
 
-    # within legend div, append div for title
-    @legend_title = @legend_container.append('div')
-        .attr 'class', 'urban-map-legend-title'
-
     # Append svg element to draw legend
     @legend = @legend_container
           .append 'svg'
             .attr
-              preserveAspectRatio : "xMinYMin slice"
+              preserveAspectRatio : "xMinYMin meet"
               viewBox :  "0 0 #{@legend_width} #{@legend_height}"
+              class : 'urban-map-legend'
             .append 'g'
 
     # Spacing between legend bins
@@ -398,8 +372,6 @@ class Map
                 # gap between successive bins
                 w = @getBBox().width
                 (i+1)*binWidth - w/2 + i*offset/2
-
-      @legend_title.text legend_text
 
     # Fill the counties with the appropriate color
     fill = (p) ->
