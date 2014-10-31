@@ -15,10 +15,9 @@
   Map = (function() {
     function Map(options) {
       var o, opt, required, self, us, _i, _len, _ref, _ref1;
+      this.options = options;
       self = this;
-      if (options == null) {
-        options = {};
-      }
+      options = this.options || {};
       if (!(options.geoJson || Urban.countyGeoJson)) {
         mapError("No county geoJson provided to Map.");
       }
@@ -35,7 +34,9 @@
         formatter: (function() {}),
         opacity: 0
       };
-      this.title = (_ref1 = options.title) != null ? _ref1 : "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, vel!";
+      if (options.title.enabled) {
+        this.title = (_ref1 = options.title.text) != null ? _ref1 : "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, vel!";
+      }
       if (us = Urban.countyGeoJson || Urban.cache[options.geoJson]) {
         self.countyJson = us;
         self.loadCSV(self.csv, function() {
@@ -80,27 +81,38 @@
     };
 
     Map.prototype.render = function() {
-      var addMapDiv, df, formatter, height, legend_container, legend_dims, legend_height, legend_width, opacity, path, projection, renderToElement, self, stateTopoData, svg, tooltipDiv, topodata, width;
+      var df, formatter, height, height_bound, legend_container, legend_dims, legend_height, legend_width, max_height, max_width, opacity, path, projection, ratio, renderLegend, renderToElement, self, stateTopoData, svg, tooltipDiv, topodata, width, width_bound, _ref, _ref1;
       self = this;
+      this.renderToElement = renderToElement = d3.select(this.renderTo);
       width = this.width = 1011;
       height = this.hieght = 588;
+      ratio = width / height;
       projection = d3.geo.albersUsa().scale(width * 1.2).translate([width / 2, height / 2]);
       path = d3.geo.path().projection(projection);
-      this.renderToElement = renderToElement = d3.select(this.renderTo);
-      addMapDiv = function(class_name, html) {
-        return renderToElement.append('div').attr('class', class_name).html(html);
-      };
       renderToElement.html('');
-      addMapDiv('urban-map-title', this.title);
-      this.legend_container = legend_container = renderToElement.append('div').attr('class', 'urban-map-legend');
+      if (this.options.title.enabled) {
+        renderToElement.append('div').attr('class', 'urban-map-title').html(this.title);
+      }
+      renderLegend = (_ref = this.displayVariable) != null ? (_ref1 = _ref.legend) != null ? _ref1.renderTo : void 0 : void 0;
+      this.legend_container = legend_container = renderLegend ? d3.select(renderLegend) : renderToElement.append('div');
       legend_dims = legend_container.node().getBoundingClientRect();
       this.legend_height = legend_height = legend_dims.height;
       this.legend_width = legend_width = legend_dims.width || (legend_dims.height / 2);
       this.svg = svg = renderToElement.append('svg').attr({
         "class": "urban-map",
-        preserveAspectRatio: "xMinYMin slice",
+        preserveAspectRatio: "xMinYMin meet",
         viewBox: "0 0 " + width + " " + height
       }).append('g');
+      max_height = parseInt(renderToElement.style('max-height')) || 0;
+      max_width = parseInt(renderToElement.style('max-width')) || 0;
+      width_bound = Math.max(max_width, ratio * max_height);
+      height_bound = Math.max(max_height, max_width / ratio);
+      if (width_bound > 0) {
+        renderToElement.select('svg.urban-map').style('max-width', width_bound + 'px');
+      }
+      if (height_bound > 0) {
+        renderToElement.select('svg.urban-map').style('max-height', width_bound + 'px');
+      }
       topodata = topojson.feature(this.countyJson, this.countyJson.objects.counties).features;
       stateTopoData = topojson.mesh(this.countyJson, this.countyJson.objects.states, function(a, b) {
         return a !== b;
@@ -112,8 +124,8 @@
         opacity: 0
       });
       this.renderToElement.on('mousemove', function() {
-        var tt_bbox, x, y, _ref;
-        _ref = [d3.event.pageX, d3.event.pageY], x = _ref[0], y = _ref[1];
+        var tt_bbox, x, y, _ref2;
+        _ref2 = [d3.event.pageX, d3.event.pageY], x = _ref2[0], y = _ref2[1];
         tt_bbox = tooltipDiv.node().getBoundingClientRect();
         return tooltipDiv.style({
           top: "" + (y - tt_bbox.height - 20) + "px",
@@ -130,11 +142,11 @@
         },
         d: path
       }).on('mouseover', function() {
-        var county_data, _ref, _ref1;
+        var county_data, _ref2, _ref3;
         tooltipDiv = d3.select('div.urban-map-tooltip');
         county_data = this.id in df ? df[this.id] : {};
-        county_data._state_name = (_ref = Urban.stateNames) != null ? _ref[this.id.slice(0, -3)] : void 0;
-        county_data._county_name = (_ref1 = Urban.countyNames) != null ? _ref1[this.id] : void 0;
+        county_data._state_name = (_ref2 = Urban.stateNames) != null ? _ref2[this.id.slice(0, -3)] : void 0;
+        county_data._county_name = (_ref3 = Urban.countyNames) != null ? _ref3[this.id] : void 0;
         return tooltipDiv.html(formatter.call(county_data)).style({
           opacity: opacity
         });
@@ -151,14 +163,11 @@
       }).style({
         fill: 'none'
       });
-      addMapDiv('urban-map-source');
-      addMapDiv('urban-map-logo');
-      addMapDiv('urban-map-social');
       return self;
     };
 
     Map.prototype.update = function(var_obj) {
-      var b, binWidth, bins, c, center, color, colors, d, enable, fill, fmt, legend_text, logo, missingColor, n_bins, name, offset, self, social, source, time, url, _ref, _ref1, _ref10, _ref11, _ref12, _ref13, _ref14, _ref15, _ref16, _ref17, _ref18, _ref19, _ref2, _ref20, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9;
+      var b, binWidth, bins, c, center, color, colors, d, enable, fill, fmt, missingColor, n_bins, name, offset, self, time, _ref, _ref1, _ref10, _ref11, _ref12, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9;
       self = this;
       bins = this.bins = (_ref = (_ref1 = var_obj.breaks) != null ? _ref1 : this.bins) != null ? _ref : mapError("No bins provided!");
       name = (_ref2 = var_obj.name) != null ? _ref2 : mapError("No variable name provided!");
@@ -169,23 +178,6 @@
       };
       binWidth = this.binWidth = (_ref7 = (_ref8 = (_ref9 = var_obj.legend) != null ? _ref9.binWidth : void 0) != null ? _ref8 : this.binWidth) != null ? _ref7 : 40;
       enable = this.enable = (_ref10 = (_ref11 = (_ref12 = var_obj.legend) != null ? _ref12.enabled : void 0) != null ? _ref11 : this.enabled) != null ? _ref10 : true;
-      legend_text = this.legend_text = (_ref13 = (_ref14 = (_ref15 = var_obj.legend) != null ? _ref15.title : void 0) != null ? _ref14 : this.legend_text) != null ? _ref13 : "Lorem ipsum dolor sit amet";
-      source = this.source = (_ref16 = (_ref17 = var_obj.source) != null ? _ref17 : this.source) != null ? _ref16 : "Source : [important source info]...";
-      logo = this.logo = (_ref18 = var_obj.logo) != null ? _ref18 : "Urban Institute";
-      url = window.location;
-      social = this.social = (_ref19 = (_ref20 = var_obj.social) != null ? _ref20 : this.social) != null ? _ref19 : "<div class=\"urban-map-share\" id=\"share\"> <div class=\"urban-map-socialtext\"><span>SHARE</span></div> <input class=\"urban-map-input\" type=\"text\" id=\"share\" value=\"" + url + "\"/> <span class=\"urban-map-button\" id=\"share\">SHARE</span> </div> <div class=\"urban-map-embed\" id=\"embed\"> <div class=\"urban-map-socialtext\"><span>EMBED</span></div> <span class=\"urban-map-button\" id=\"embed\">COPY</span> <input class=\"urban-map-input\" type=\"text\" id=\"embed\" /> </div>";
-      d3.select('.urban-map-source').html(source);
-      d3.select('.urban-map-logo').html(logo);
-      d3.select('.urban-map-social').html(social);
-      d3.select('.urban-map-embed .urban-map-input').property('value', "\<iframe src=\"" + url + "\" /\>");
-      d3.selectAll('.urban-map-input').on('click', function() {
-        return this.select();
-      });
-      d3.selectAll('.urban-map-button').on('click', function() {
-        return d3.select(".urban-map-input#" + this.id).call(function() {
-          return this.select();
-        });
-      });
       n_bins = bins.length;
       b = n_bins;
       c = colors.length;
@@ -204,10 +196,10 @@
       }
       color = d3.scale.threshold().domain(bins).range(colors);
       this.legend_container.selectAll("*").remove();
-      this.legend_title = this.legend_container.append('div').attr('class', 'urban-map-legend-title');
       this.legend = this.legend_container.append('svg').attr({
-        preserveAspectRatio: "xMinYMin slice",
-        viewBox: "0 0 " + this.legend_width + " " + this.legend_height
+        preserveAspectRatio: "xMinYMin meet",
+        viewBox: "0 0 " + this.legend_width + " " + this.legend_height,
+        "class": 'urban-map-legend'
       }).append('g');
       offset = 2;
       binWidth = (this.legend_width / (n_bins + 1)) - offset * n_bins;
@@ -238,11 +230,10 @@
             return (i + 1) * binWidth - w / 2 + i * offset / 2;
           }
         });
-        this.legend_title.text(legend_text);
       }
       fill = function(p) {
-        var v, _ref21, _ref22;
-        v = (_ref21 = self.data) != null ? (_ref22 = _ref21[p.id]) != null ? _ref22[name] : void 0 : void 0;
+        var v, _ref13, _ref14;
+        v = (_ref13 = self.data) != null ? (_ref14 = _ref13[p.id]) != null ? _ref14[name] : void 0 : void 0;
         if (v) {
           return color(v);
         } else {
