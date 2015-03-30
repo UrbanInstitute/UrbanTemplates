@@ -72,7 +72,8 @@
             if (!(cid in row)) {
               mapError("" + cid + " not in csv!");
             }
-            d[row[cid]] = row;
+            // parseInt(n, 10) removes leading zeroes for fips in states AL -> CT (alphabetically)
+            d[parseInt(row[cid],10)] = row;
           }
           return callback();
         });
