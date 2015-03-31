@@ -98,7 +98,8 @@ class Map
         # convert list to object = countyID => row
         for row in data
           mapError("#{cid} not in csv!") if not (cid of row)
-          d[row[cid]] = row
+        #parseInt(n, 10) removes leading zeroes for fips in states AL -> CT (alphabetically)
+          d[parseInt(row[cid],10)] = row;
         # run callback
         callback()
     # Method chaining
