@@ -41,12 +41,10 @@
         #map {
             display: block;
             min-width: 400px;
-            max-height: 600px;
-            width: 100%;
+            width: 60%;
             background-color: red;
-            float: left;
+            margin: 0 auto;
             margin-bottom: 10px;
-            text-align: center;
         }
         #legend {
             width: 400px;
@@ -177,6 +175,11 @@
        </div>
     </div>
 
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="lib/bootstrap.min.js"></script>
+
     <script>
       /*
         Create a new "Urban Map" object
@@ -248,12 +251,14 @@
           "opacity" : 0.9
         }
       });
+
+
+    $(window).on("resize", function() {
+        map.render();
+    });
     </script>
 
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="lib/bootstrap.min.js"></script>
+
 
   </body>
 </html>

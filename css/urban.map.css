@@ -4,12 +4,6 @@
   10/16/14
 **************************************/
 
-/* constrain map and legend to rendering container */
-svg.urban-map,
-svg.urban-map-legend {
-  max-height: inherit;
-  max-width: inherit;
-}
 
 /* popup tooltip when hovering over a county */
 .urban-map-tooltip {

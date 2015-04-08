@@ -1,40 +1,20 @@
-###
-    D3 County Map Template
-    Ben Southgate
-    9/29/14
-###
+# D3 County Map Template
+# Ben Southgate
+# 9/29/14
 
-##
-##
+
 ## Throw module error
-##
-##
 mapError = (text) -> throw "Urban Map Error : #{text}"
 
 
-##
-##
 ## Class for Responsive County Map
-##
-##
 class Map
 
-
-  #
-  #
   # Map Constructor
-  #
-  #
   constructor : (@options) ->
 
-    # Self Reference for inner function contexts
-    self = @
     options = @options or {}
 
-    #
-    # check for geojson passed in options or
-    # preloaded with bundle
-    #
     if not (options.geoJson or Urban.countyGeoJson)
       mapError "No county geoJson provided to Map."
 
@@ -47,7 +27,7 @@ class Map
     ]
     for opt in required
       if (o = options[opt])
-        self[opt] = o
+        @[opt] = o
       else
         mapError "\"#{opt}\" not provided to Map."
 
@@ -63,72 +43,57 @@ class Map
 
     # Checked for cached geojson, loading if not
     if us = Urban.countyGeoJson or Urban.cache[options.geoJson]
-      self.countyJson = us
-      self.loadCSV self.csv, ->
-        self.render()
-        self.update self.displayVariable
+      @countyJson = us
+      @loadCSV @csv, =>
+        @render()
     else
       # Load geojson information and then csv data
-      d3.json options.geoJson, (e, us) ->
+      d3.json options.geoJson, (e, us) =>
         Urban.cache[options.geoJson] = us
-        self.countyJson = us
-        self.loadCSV self.csv, ->
-          self.render()
-          self.update self.displayVariable
+        @countyJson = us
+        @loadCSV @csv, =>
+          @render()
 
 
-  #
-  #
   # Load new data into map, running callback on complete
-  #
-  #
   loadCSV : (filename, callback) ->
-    # Self Reference for inner function contexts
-    self = @
-    cid = self.countyID
+    cid = @countyID
     cache = Urban.cache
     # Check for cached data, downloading if nec.
     if cache[filename]
-      self.data = cache[filename]
+      @data = cache[filename]
       callback()
     else
-      d3.csv filename, (e, data) ->
+      d3.csv filename, (e, data) =>
         # Store data as object referenced by county id
-        cache[filename] = self.data = d = {}
+        cache[filename] = @data = d = {}
         # convert list to object = countyID => row
         for row in data
           mapError("#{cid} not in csv!") if not (cid of row)
-        #parseInt(n, 10) removes leading zeroes for fips in states AL -> CT (alphabetically)
-          d[parseInt(row[cid],10)] = row;
+          #parseInt(n, 10) removes leading zeroes for fips in states AL -> CT (alphabetically)
+          d[parseInt(row[cid],10)] = row
         # run callback
         callback()
     # Method chaining
-    return self
+    return @
 
 
-  #
-  #
+
   # Draw the map onto given container
-  #
-  #
   render : ->
-
-    # Self Reference for inner function contexts
-    self = @
 
     # Container element selection
     @renderToElement = renderToElement = d3.select @renderTo
 
     # This "magic number" is not the pixel width and height ratio,
     # but simply a starting point for the w/h ratio
-    # which tightly bounds the map. The actual visible
-    # dimensions are set by the svg viewbox.
-    width = @width = 1011
-    height = @hieght = 588
+    # which tightly bounds the map.
+    ratio = 1011 / 588
 
-    ratio = width / height
+    bb = @renderToElement.node().getBoundingClientRect()
 
-
+    width = @width = bb.width
+    height = @hieght = width*(1/ratio)
 
     # Albers projection centered in the contianer div
     projection = d3.geo.albersUsa()
@@ -165,16 +130,12 @@ class Map
     @svg = svg = renderToElement
             .append 'svg'
             .attr
-              class : "urban-map"
-              preserveAspectRatio : "xMinYMin meet"
-              viewBox :  "0 0 #{width} #{height}"
+              width : width,
+              height : height
             .append 'g'
 
-    #
-    #
+
     # Constrain svg to maximum dimensions, allowing for centering
-    #
-    #
     max_height = parseInt(renderToElement.style 'max-height') or 0
     max_width = parseInt(renderToElement.style 'max-width') or 0
     width_bound = Math.max max_width, ratio*max_height
@@ -197,7 +158,7 @@ class Map
     stateTopoData = topojson.mesh(
                       @countyJson,
                       @countyJson.objects.states,
-                      (a, b) -> a != b
+                      (a, b) => a != b
                     )
 
     # Tooltip div
@@ -220,9 +181,9 @@ class Map
 
     # References to data, tooltip formatting function,
     # and desired opacity
-    df = self.data
-    formatter = self.tooltip.formatter
-    opacity = self.tooltip.opacity
+    df = @data
+    formatter = @tooltip.formatter
+    opacity = @tooltip.opacity
 
     # Create county paths and store as class attribute
     @counties = svg.append 'g'
@@ -232,7 +193,7 @@ class Map
                   .append 'path'
                   .attr
                     class : 'urban-map-counties'
-                    id : (d) -> d.id
+                    id : (d) => d.id
                     d : path
                 .on 'mouseover', ->
                   # Call formatting function in context of
@@ -261,18 +222,18 @@ class Map
         .style
           fill : 'none'
 
+    # call update on render
+    @update()
+
     # Method chaining
-    return self
+    return @
 
 
-  #
-  #
+
   # Update the choropleth
-  #
-  #
   update : (var_obj) ->
-    # Self Reference for inner function contexts
-    self = @
+
+    var_obj ?= @displayVariable
 
     # Bins and name for variable to display
     bins = @bins = var_obj.breaks ? @bins ? mapError("No bins provided!")
@@ -340,6 +301,7 @@ class Map
           .data bins.concat bins[-1]*2
         .enter()
         .append 'rect'
+          # set dimensional attributes with object
           .attr
             width : binWidth
             height : binWidth * 0.333
@@ -347,7 +309,7 @@ class Map
             y : @legend_height * .5
           .style
             # hack to fill colors below bins
-            fill : (d) -> color d * (
+            fill : (d) => color d * (
               if d == 0
                 -0.01
               else if d > 0
@@ -362,7 +324,7 @@ class Map
           .enter()
           .append 'text'
             .attr 'class', 'urban-map-legend-label'
-            .text (d) -> fmt.call value : d
+            .text (d) => fmt.call value : d
 
       @legend.selectAll '.urban-map-legend-label'
             .attr
@@ -375,8 +337,8 @@ class Map
                 (i+1)*binWidth - w/2 + i*offset/2
 
     # Fill the counties with the appropriate color
-    fill = (p) ->
-      v = self.data?[p.id]?[name]
+    fill = (p) =>
+      v = @data?[p.id]?[name]
       if v then color(v) else missingColor
 
     # Call transition if desired
@@ -388,15 +350,11 @@ class Map
       @counties.attr 'fill', fill
 
     # Method chaining
-    return self
+    return @
 
 
 
-##
-##
-## Export Module
-##
-##
+# export
 do ->
   Urban = Urban or {}
   Urban.cache ?= {}

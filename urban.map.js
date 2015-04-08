@@ -1,10 +1,3 @@
-
-/*
-    D3 County Map Template
-    Ben Southgate
-    9/29/14
- */
-
 (function() {
   var Map, mapError;
 
@@ -14,9 +7,8 @@
 
   Map = (function() {
     function Map(options) {
-      var o, opt, required, self, us, _i, _len, _ref, _ref1;
+      var o, opt, required, us, _i, _len, _ref, _ref1;
       this.options = options;
-      self = this;
       options = this.options || {};
       if (!(options.geoJson || Urban.countyGeoJson)) {
         mapError("No county geoJson provided to Map.");
@@ -25,7 +17,7 @@
       for (_i = 0, _len = required.length; _i < _len; _i++) {
         opt = required[_i];
         if ((o = options[opt])) {
-          self[opt] = o;
+          this[opt] = o;
         } else {
           mapError("\"" + opt + "\" not provided to Map.");
         }
@@ -38,55 +30,58 @@
         this.title = (_ref1 = options.title.text) != null ? _ref1 : "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, vel!";
       }
       if (us = Urban.countyGeoJson || Urban.cache[options.geoJson]) {
-        self.countyJson = us;
-        self.loadCSV(self.csv, function() {
-          self.render();
-          return self.update(self.displayVariable);
-        });
+        this.countyJson = us;
+        this.loadCSV(this.csv, (function(_this) {
+          return function() {
+            return _this.render();
+          };
+        })(this));
       } else {
-        d3.json(options.geoJson, function(e, us) {
-          Urban.cache[options.geoJson] = us;
-          self.countyJson = us;
-          return self.loadCSV(self.csv, function() {
-            self.render();
-            return self.update(self.displayVariable);
-          });
-        });
+        d3.json(options.geoJson, (function(_this) {
+          return function(e, us) {
+            Urban.cache[options.geoJson] = us;
+            _this.countyJson = us;
+            return _this.loadCSV(_this.csv, function() {
+              return _this.render();
+            });
+          };
+        })(this));
       }
     }
 
     Map.prototype.loadCSV = function(filename, callback) {
-      var cache, cid, self;
-      self = this;
-      cid = self.countyID;
+      var cache, cid;
+      cid = this.countyID;
       cache = Urban.cache;
       if (cache[filename]) {
-        self.data = cache[filename];
+        this.data = cache[filename];
         callback();
       } else {
-        d3.csv(filename, function(e, data) {
-          var d, row, _i, _len;
-          cache[filename] = self.data = d = {};
-          for (_i = 0, _len = data.length; _i < _len; _i++) {
-            row = data[_i];
-            if (!(cid in row)) {
-              mapError("" + cid + " not in csv!");
+        d3.csv(filename, (function(_this) {
+          return function(e, data) {
+            var d, row, _i, _len;
+            cache[filename] = _this.data = d = {};
+            for (_i = 0, _len = data.length; _i < _len; _i++) {
+              row = data[_i];
+              if (!(cid in row)) {
+                mapError("" + cid + " not in csv!");
+              }
+              d[parseInt(row[cid], 10)] = row;
             }
-            d[parseInt(row[cid], 10)] = row;
-          }
-          return callback();
-        });
+            return callback();
+          };
+        })(this));
       }
-      return self;
+      return this;
     };
 
     Map.prototype.render = function() {
-      var df, formatter, height, height_bound, legend_container, legend_dims, legend_height, legend_width, max_height, max_width, opacity, path, projection, ratio, renderLegend, renderToElement, self, stateTopoData, svg, tooltipDiv, topodata, width, width_bound, _ref, _ref1;
-      self = this;
+      var bb, df, formatter, height, height_bound, legend_container, legend_dims, legend_height, legend_width, max_height, max_width, opacity, path, projection, ratio, renderLegend, renderToElement, stateTopoData, svg, tooltipDiv, topodata, width, width_bound, _ref, _ref1;
       this.renderToElement = renderToElement = d3.select(this.renderTo);
-      width = this.width = 1011;
-      height = this.hieght = 588;
-      ratio = width / height;
+      ratio = 1011 / 588;
+      bb = this.renderToElement.node().getBoundingClientRect();
+      width = this.width = bb.width;
+      height = this.hieght = width * (1 / ratio);
       projection = d3.geo.albersUsa().scale(width * 1.2).translate([width / 2, height / 2]);
       path = d3.geo.path().projection(projection);
       renderToElement.html('');
@@ -99,9 +94,8 @@
       this.legend_height = legend_height = legend_dims.height;
       this.legend_width = legend_width = legend_dims.width || (legend_dims.height / 2);
       this.svg = svg = renderToElement.append('svg').attr({
-        "class": "urban-map",
-        preserveAspectRatio: "xMinYMin meet",
-        viewBox: "0 0 " + width + " " + height
+        width: width,
+        height: height
       }).append('g');
       max_height = parseInt(renderToElement.style('max-height')) || 0;
       max_width = parseInt(renderToElement.style('max-width')) || 0;
@@ -114,9 +108,11 @@
         renderToElement.select('svg.urban-map').style('max-height', width_bound + 'px');
       }
       topodata = topojson.feature(this.countyJson, this.countyJson.objects.counties).features;
-      stateTopoData = topojson.mesh(this.countyJson, this.countyJson.objects.states, function(a, b) {
-        return a !== b;
-      });
+      stateTopoData = topojson.mesh(this.countyJson, this.countyJson.objects.states, (function(_this) {
+        return function(a, b) {
+          return a !== b;
+        };
+      })(this));
       d3.select('div.urban-map-tooltip').remove();
       tooltipDiv = d3.select('body').append('div').attr('class', 'urban-map-tooltip').style({
         display: "block",
@@ -132,14 +128,16 @@
           left: "" + (x - tt_bbox.width / 2) + "px"
         });
       });
-      df = self.data;
-      formatter = self.tooltip.formatter;
-      opacity = self.tooltip.opacity;
+      df = this.data;
+      formatter = this.tooltip.formatter;
+      opacity = this.tooltip.opacity;
       this.counties = svg.append('g').selectAll('path').data(topodata).enter().append('path').attr({
         "class": 'urban-map-counties',
-        id: function(d) {
-          return d.id;
-        },
+        id: (function(_this) {
+          return function(d) {
+            return d.id;
+          };
+        })(this),
         d: path
       }).on('mouseover', function() {
         var county_data, _ref2, _ref3;
@@ -163,12 +161,15 @@
       }).style({
         fill: 'none'
       });
-      return self;
+      this.update();
+      return this;
     };
 
     Map.prototype.update = function(var_obj) {
-      var b, binWidth, bins, c, center, color, colors, d, enable, fill, fmt, missingColor, n_bins, name, offset, self, time, _ref, _ref1, _ref10, _ref11, _ref12, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9;
-      self = this;
+      var b, binWidth, bins, c, center, color, colors, d, enable, fill, fmt, missingColor, n_bins, name, offset, time, _ref, _ref1, _ref10, _ref11, _ref12, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9;
+      if (var_obj == null) {
+        var_obj = this.displayVariable;
+      }
       bins = this.bins = (_ref = (_ref1 = var_obj.breaks) != null ? _ref1 : this.bins) != null ? _ref : mapError("No bins provided!");
       name = (_ref2 = var_obj.name) != null ? _ref2 : mapError("No variable name provided!");
       missingColor = this.missingColor = var_obj.missingColor || "#aaa";
@@ -213,15 +214,19 @@
           },
           y: this.legend_height * .5
         }).style({
-          fill: function(d) {
-            return color(d * (d === 0 ? -0.01 : d > 0 ? 0.99 : 1.01));
-          }
+          fill: (function(_this) {
+            return function(d) {
+              return color(d * (d === 0 ? -0.01 : d > 0 ? 0.99 : 1.01));
+            };
+          })(this)
         });
-        this.legend.selectAll('text').data(bins).enter().append('text').attr('class', 'urban-map-legend-label').text(function(d) {
-          return fmt.call({
-            value: d
-          });
-        });
+        this.legend.selectAll('text').data(bins).enter().append('text').attr('class', 'urban-map-legend-label').text((function(_this) {
+          return function(d) {
+            return fmt.call({
+              value: d
+            });
+          };
+        })(this));
         this.legend.selectAll('.urban-map-legend-label').attr({
           y: this.legend_height * .5 - 10,
           x: function(d, i) {
@@ -231,21 +236,23 @@
           }
         });
       }
-      fill = function(p) {
-        var v, _ref13, _ref14;
-        v = (_ref13 = self.data) != null ? (_ref14 = _ref13[p.id]) != null ? _ref14[name] : void 0 : void 0;
-        if (v) {
-          return color(v);
-        } else {
-          return missingColor;
-        }
-      };
+      fill = (function(_this) {
+        return function(p) {
+          var v, _ref13, _ref14;
+          v = (_ref13 = _this.data) != null ? (_ref14 = _ref13[p.id]) != null ? _ref14[name] : void 0 : void 0;
+          if (v) {
+            return color(v);
+          } else {
+            return missingColor;
+          }
+        };
+      })(this);
       if ((time = var_obj.transition)) {
         this.counties.transition().duration(Math.abs(time)).attr('fill', fill);
       } else {
         this.counties.attr('fill', fill);
       }
-      return self;
+      return this;
     };
 
     return Map;
